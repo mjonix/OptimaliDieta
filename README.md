@@ -13,7 +13,6 @@ include a flexible food database, where user can search for products, sort them 
 include new ones, possibility to save weight change history (of the last year) and draw line charts based on it, also a Body
 Mass Index calculator.
 
-# *************************************************************************************
 # Optimalios dietos parinkimo sistema
 
 
