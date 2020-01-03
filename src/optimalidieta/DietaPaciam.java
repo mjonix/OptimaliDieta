@@ -429,7 +429,8 @@ public class DietaPaciam extends JFrame implements MenuListener, ActionListener,
         Skaiciavimai s = new Skaiciavimai();
 
         rekomendacija.setText(" Pagal pateiktus duomenis, rekomenduojama paros "
-                + "energijos suvartojimo norma yra: " + kalorijuPoreikis + "kcal\n\n" + s.medziagos((10000 * Double.parseDouble(svoris + "")) / (Double.parseDouble(ugis + "")
+                + "energijos suvartojimo norma yra: " + kalorijuPoreikis + "kcal\n\n" + s.pateiktiMedziaguNormas(
+                        (10000 * Double.parseDouble(svoris + "")) / (Double.parseDouble(ugis + "")
                         * Double.parseDouble(ugis + "")), aktyvumas, kalorijuPoreikis, amzius, lytis));
 
         rekomendacija.setBackground(new Color(166, 223, 32));

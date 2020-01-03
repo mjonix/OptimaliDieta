@@ -2181,14 +2181,15 @@ public class OptimaliDieta extends JFrame implements MenuListener, ActionListene
         }
 
         try {
-            dieta = s.dietosSudarymas(kmi(svoris, ugis), kalorijuPoreikis, aktyvumas, amzius, lytis, kartai, dienos,
+            dieta = s.parinktiDieta(kmi(svoris, ugis), kalorijuPoreikis, aktyvumas, amzius, lytis, kartai, dienos,
                     nepageidaujamaKategorija, nepageidaujamiProduktai, ignoruojami, pietus);
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(OptimaliDieta.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         dietosPlanas.setText(" Pagal pateiktus duomenis, rekomenduojama paros "
-                + "energijos suvartojimo norma yra: " + kalorijuPoreikis + "kcal\n\n" + s.medziagos(kmi(svoris, ugis), aktyvumas, kalorijuPoreikis, amzius, lytis)
+                + "energijos suvartojimo norma yra: " + kalorijuPoreikis + "kcal\n\n" + s.pateiktiMedziaguNormas(
+                        kmi(svoris, ugis), aktyvumas, kalorijuPoreikis, amzius, lytis)
                 + " Pavyzdinė dieta:\n\n"
                 + dieta);
 

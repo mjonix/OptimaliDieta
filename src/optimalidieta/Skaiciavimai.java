@@ -12,90 +12,22 @@ import java.util.TimerTask;
 
 public class Skaiciavimai {
 
-    private int dietosGeneravimoTrukme = 0;
+    private int dietosGeneravimoTrukme = 0, baltymaiMin, baltymaiMax, angliavandeniaiMin, angliavandeniaiMax, riebalaiMin,
+            riebalaiMax, kalcisMin, kalcisMax, pusryciuKal, priespieciuKal = 0, pietuKal, pavakariuKal = 0, vakarienesKal,
+            skaidulinesMin, skaidulinesMax;
 
-    public String medziagos(double kmi, int aktyvumas, int kalorijuPoreikis, int amzius, int lytis) {
-        String baltymai, angliavandeniai, riebalai, kalcis;
-        if (kmi > 25.5) {
-            baltymai = (int) Math.round((kalorijuPoreikis * 25) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 35) / 400) + "g";
-            angliavandeniai = (int) Math.round((kalorijuPoreikis * 45) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 55) / 400) + "g";
-            riebalai = (int) Math.round((kalorijuPoreikis * 15) / 900) + " - " + (int) Math.round((kalorijuPoreikis * 25) / 900) + "g";
-        } else {
-            if (aktyvumas == 1) {
-                baltymai = (int) Math.round((kalorijuPoreikis * 10) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 20) / 400) + "g";
-                angliavandeniai = (int) Math.round((kalorijuPoreikis * 55) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 75) / 400) + "g";
-                riebalai = (int) Math.round((kalorijuPoreikis * 10) / 900) + " - " + (int) Math.round((kalorijuPoreikis * 15) / 900) + "g";
-            } else {
-                baltymai = (int) Math.round((kalorijuPoreikis * 15) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 20) / 400) + "g";
-                angliavandeniai = (int) Math.round((kalorijuPoreikis * 55) / 400) + " - " + (int) Math.round((kalorijuPoreikis * 60) / 400) + "g";
-                riebalai = (int) Math.round((kalorijuPoreikis * 15) / 900) + " - " + (int) Math.round((kalorijuPoreikis * 20) / 900) + "g";
-            }
-        }
-
-        if (amzius == 0) {
-            kalcis = "0.24 - 0.26g";
-        } else if (amzius > 0 && amzius < 4) {
-            kalcis = "0.69 - 0.71g";
-        } else if (amzius > 3 && amzius < 9) {
-            kalcis = "0.99 - 1.01g";
-        } else if (amzius > 8 && amzius < 14) {
-            kalcis = "1.29 - 1.31g";
-        } else if (amzius > 13 && amzius < 19) {
-            kalcis = "1.29 - 1.31g";
-        } else if (amzius > 18 && amzius < 51) {
-            kalcis = "0.99 - 1.01g";
-        } else if (amzius > 50 && amzius < 71) {
-            if (lytis == 1) {
-                kalcis = "0.99 - 1.01g";
-            } else {
-                kalcis = "1.19 - 1.21g";
-            }
-        } else {
-            kalcis = "1.19 - 1.21g";
-        }
-        return " Rekomenduojama suvartoti: " + baltymai + " baltymų, " + angliavandeniai + " angliavandenių, " + riebalai + " riebalų,\n "
-                + kalcis + " kalcio ir " + ((int) Math.round((kalorijuPoreikis * 14) / 1000) - 5) + " - "
-                + ((int) Math.round((kalorijuPoreikis * 14) / 1000) + 5) + "g skaidulinių medžiagų.";
+    public String pateiktiMedziaguNormas(double kmi, int aktyvumas, int kalorijuPoreikis, int amzius, int lytis) {
+        apskaiciuotiNormas(kmi, kalorijuPoreikis, aktyvumas, amzius, lytis, 1);
+        return " Rekomenduojama suvartoti: " + baltymaiMin/4 + " - " + baltymaiMax/4 + "g baltymų, " + angliavandeniaiMin/4 + " - " + angliavandeniaiMax/4
+                + "g angliavandenių, " + riebalaiMin/9 + " - " + riebalaiMax/9 + "g riebalų,\n " + ((double) kalcisMin / 1000000) + " - "
+                + ((double) kalcisMax / 1000000) + "g kalcio ir " + ((int) Math.round((kalorijuPoreikis * 14) / 1000) - 5) + " - "
+                + ((int) Math.round((kalorijuPoreikis * 14) / 1000)
+                + 5) + "g skaidulinių medžiagų.\n\n";
     }
 
-    public String dietosSudarymas(double kmi, int kalorijuPoreikis, int aktyvumas, int amzius, int lytis,
-            int kartai, int dienos, ArrayList<String> nepageidaujamaKategorija,
-            ArrayList<String> nepageidaujamiProduktai, ArrayList<String> ignoruojami,
-            boolean mesaPietums)
-            throws ClassNotFoundException, SQLException {
-
-        Class.forName("org.sqlite.JDBC");
-        Connection conn = DriverManager.getConnection("jdbc:sqlite:DUOMENU_BAZE.db");
-        Statement state = conn.createStatement();
-        ResultSet rs = state.executeQuery("select * from MAISTO_PRODUKTAI;");
-
-        ArrayList<MaistoProduktas> produktai = new ArrayList<>();
-        boolean leidimas;
-        while (rs.next()) {
-            leidimas = true;
-            for (String nk : nepageidaujamaKategorija) {
-                if (rs.getString("kategorija").contains(nk)) {
-                    leidimas = false;
-                }
-            }
-            for (String np : nepageidaujamiProduktai) {
-                if (rs.getString("pavadinimas").equals(np)) {
-                    leidimas = false;
-                }
-            }
-
-            if (leidimas) {
-                produktai.add(new MaistoProduktas(rs.getString("pavadinimas"), rs.getInt("energine_verte"), rs.getInt("baltymai"),
-                        rs.getInt("angliavandeniai"), rs.getInt("riebalai"), rs.getInt("skaidulines_medziagos"), rs.getInt("kalcis"),
-                        rs.getInt("cholesterolis"), rs.getInt("standartine_porcija"), rs.getInt("laikas"), rs.getString("kategorija"),
-                        rs.getBoolean("skystis")));
-            }
-        }
-        conn.close();
-
-        int baltymaiMin, baltymaiMax, angliavandeniaiMin, angliavandeniaiMax, riebalaiMin, riebalaiMax,
-                kalcisMin, kalcisMax, skaidulinesMin = (((kalorijuPoreikis * 14) / 1000) * 1000000) - 5000000,
-                skaidulinesMax = (((kalorijuPoreikis * 14) / 1000) * 1000000) + 5000000;
+    private void apskaiciuotiNormas(double kmi, int kalorijuPoreikis, int aktyvumas, int amzius, int lytis, int kartai) {
+        skaidulinesMin = (((kalorijuPoreikis * 14) / 1000) * 1000000) - 5000000;
+        skaidulinesMax = (((kalorijuPoreikis * 14) / 1000) * 1000000) + 5000000;
         if (kmi > 25.5) {
             baltymaiMin = (kalorijuPoreikis * 25) / 100;
             baltymaiMax = (kalorijuPoreikis * 35) / 100;
@@ -152,12 +84,6 @@ public class Skaiciavimai {
             kalcisMax = 1210000;
         }
 
-        Random r = new Random();
-        int bandymas = 0, kartoti = dienos, cholesterolioNorma = 300000;
-        String rezultatas = "";
-
-        int pusryciuKal, priespieciuKal = 0, pietuKal, pavakariuKal = 0, vakarienesKal;
-
         if (kartai == 3) {
             pusryciuKal = (kalorijuPoreikis * 35) / 100;
             pietuKal = (kalorijuPoreikis * 4) / 10;
@@ -169,7 +95,43 @@ public class Skaiciavimai {
             pavakariuKal = kalorijuPoreikis / 10;
             vakarienesKal = kalorijuPoreikis / 5;
         }
+    }
 
+    private ArrayList<MaistoProduktas> gautiProduktus(ArrayList<String> nepageidaujamaKategorija,
+            ArrayList<String> nepageidaujamiProduktai) throws SQLException, ClassNotFoundException {
+        Class.forName("org.sqlite.JDBC");
+        Connection conn = DriverManager.getConnection("jdbc:sqlite:DUOMENU_BAZE.db");
+        Statement state = conn.createStatement();
+        ResultSet rs = state.executeQuery("select * from MAISTO_PRODUKTAI;");
+
+        ArrayList<MaistoProduktas> produktai = new ArrayList();
+        boolean leidimas;
+
+        while (rs.next()) {
+            leidimas = true;
+            for (String nk : nepageidaujamaKategorija) {
+                if (rs.getString("kategorija").contains(nk)) {
+                    leidimas = false;
+                }
+            }
+            for (String np : nepageidaujamiProduktai) {
+                if (rs.getString("pavadinimas").equals(np)) {
+                    leidimas = false;
+                }
+            }
+
+            if (leidimas) {
+                produktai.add(new MaistoProduktas(rs.getString("pavadinimas"), rs.getInt("energine_verte"), rs.getInt("baltymai"),
+                        rs.getInt("angliavandeniai"), rs.getInt("riebalai"), rs.getInt("skaidulines_medziagos"), rs.getInt("kalcis"),
+                        rs.getInt("cholesterolis"), rs.getInt("standartine_porcija"), rs.getInt("laikas"), rs.getString("kategorija"),
+                        rs.getBoolean("skystis")));
+            }
+        }
+        conn.close();
+        return produktai;
+    }
+
+    private boolean imanomaSudarytiDieta(ArrayList<MaistoProduktas> produktai, int kartai, boolean mesaPietums) {
         int p0 = 0, p1 = 0, p2 = 0, p3 = 0, pm = 0;
         MaistoProduktas produktas;
         for (int i = 0; i < produktai.size(); i++) {
@@ -193,9 +155,26 @@ public class Skaiciavimai {
         }
 
         if (p1 == 0 || p2 == 0 || p3 == 0 || (p0 == 0 && kartai == 5) || (pm == 0 && mesaPietums)) {
+            return false;
+        }
+        return true;
+    }
+
+    public String parinktiDieta(double kmi, int kalorijuPoreikis, int aktyvumas, int amzius, int lytis,
+            int kartai, int dienos, ArrayList<String> nepageidaujamaKategorija,
+            ArrayList<String> nepageidaujamiProduktai, ArrayList<String> ignoruojami,
+            boolean mesaPietums) throws ClassNotFoundException, SQLException {
+
+        ArrayList<MaistoProduktas> produktai = gautiProduktus(nepageidaujamaKategorija, nepageidaujamiProduktai);
+
+        if (!imanomaSudarytiDieta(produktai, kartai, mesaPietums)) {
             return " * Dietos sudaryti neįmanoma. Prašome pasirinkti mažiau produktų, kaip nepageidaujamus, arba"
                     + "\n įtraukite naujų produktų į duomenų bazę.";
         }
+        apskaiciuotiNormas(kmi, kalorijuPoreikis, aktyvumas, amzius, lytis, kartai);
+        Random r = new Random();
+        int bandymas = 0, kartoti = dienos, cholesterolioNorma = 300000;
+        String rezultatas = "";
 
         final Timer laikmatis = new Timer();
         TimerTask generavimoLaikas = new TimerTask() {
@@ -209,7 +188,7 @@ public class Skaiciavimai {
             if (dietosGeneravimoTrukme > 60 && kartoti == dienos && bandymas > 50000) {
                 laikmatis.cancel();
                 return " * Pilnavertės dietos sudaryti nepavyko. Prašome pasirinkti mažiau produktų, kaip"
-                        + " nepageidaujamus,<br> arba įtraukite naujų produktų į duomenų bazę.";
+                        + " nepageidaujamus,\n arba įtraukite naujų produktų į duomenų bazę.";
             }
             bandymas++;
             ArrayList<Integer> pusryciuPr = new ArrayList<>();
@@ -225,6 +204,7 @@ public class Skaiciavimai {
             ArrayList<String> kategorijos = new ArrayList<>();
             int indeksas = 0, turimosKalorijos = 0;
 
+            MaistoProduktas produktas;
             while (true) {
                 indeksas = r.nextInt(produktai.size());
                 produktas = produktai.get(indeksas);
@@ -237,7 +217,7 @@ public class Skaiciavimai {
 
             int papildomas = 0;
             int kartojimas = 0;
-            leidimas = true;
+            boolean leidimas = true;
             if (kartai == 5) {
                 while (true) {
                     kartojimas++;
@@ -556,7 +536,7 @@ public class Skaiciavimai {
                     || ignoruojami.contains("cholesterolis")) && !leidimas) {
 
                 String pusryciai = " Pusryčiams: \n\n", priespieciai = "\n Priešpiečiams: \n\n", pietus = "\n Pietums: \n\n",
-                        pavakariai = "\n\n Pavakariams: \n\n", vakariene = "\n Vakarienei: \n\n";
+                        pavakariai = "\n Pavakariams: \n\n", vakariene = "\n Vakarienei: \n\n";
 
                 if (kartai == 3) {
                     for (int i = 0; i < pusryciuPr.size(); i++) {
